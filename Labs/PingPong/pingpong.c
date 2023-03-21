@@ -48,10 +48,10 @@ int main(int argc, char *argv[])
     printf("\n");
 
     int parentToChildPipe[2];
-    int parentoToChildResultPipe = pipe(parentToChildPipe);
-    if (parentoToChildResultPipe < 0)
+    int parentToChildResultPipe = pipe(parentToChildPipe);
+    if (parentToChildResultPipe < 0)
     {
-        perror("Error en pipe");
+        perror("Error en pipe parent to child");
         exit(-1);
     }
 
@@ -59,7 +59,7 @@ int main(int argc, char *argv[])
     int childToParentResultPipe = pipe(childToParentPipe);
     if (childToParentResultPipe < 0)
     {
-        perror("Error en pipe");
+        perror("Error en pipe child to parent");
         exit(-1);
     }
 
@@ -70,17 +70,16 @@ int main(int argc, char *argv[])
         showFork(forkResult);
         showPid();
 
-        int receivedValue = 0;
-        read(parentToChildPipe[0], &receivedValue, sizeof(receivedValue));
-        printf("  - recibo valor %d vía fd=%d\n", receivedValue, parentToChildPipe[0]);
+        int receivedValueFromParent = 0;
+        read(parentToChildPipe[0], &receivedValueFromParent, sizeof(receivedValueFromParent));
+        printf("  - recibo valor %d vía fd=%d\n", receivedValueFromParent, parentToChildPipe[0]);
 
         printf("  - reenvío valor en fd=%d y termino\n\n", childToParentPipe[1]);
-        write(childToParentPipe[1], &receivedValue, sizeof(receivedValue));
+        write(childToParentPipe[1], &receivedValueFromParent, sizeof(receivedValueFromParent));
     }
     else
     {
         showFork(forkResult);
-
         showPid();
 
         int randomValue = rand();
@@ -89,10 +88,11 @@ int main(int argc, char *argv[])
         printf("  - envío valor %d a través de fd=%d\n\n", randomValue, parentToChildPipe[1]);
         write(parentToChildPipe[1], &randomValue, sizeof(randomValue));
 
-        int receivedValue = 0;
-        read(childToParentPipe[0], &receivedValue, sizeof(receivedValue));
+        int receivedValueFromChild = 0;
+        read(childToParentPipe[0], &receivedValueFromChild, sizeof(receivedValueFromChild));
         printf("Hola, de nuevo PID %d:\n", getpid());
-        printf("  - recibí valor %d vía fd=%d\n", receivedValue, childToParentPipe[1]);
+
+        printf("  - recibí valor %d vía fd=%d\n", receivedValueFromChild, childToParentPipe[0]);
 
     }
 
