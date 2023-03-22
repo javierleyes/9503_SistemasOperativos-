@@ -42,8 +42,8 @@ int main(int argc, char *argv[])
     }
 
     printf("Hola, soy PID %d:\n", getpid());
-    printf("- primer pipe me devuelve: [%d, %d]\n", parentToChildPipe[0], parentToChildPipe[1]);
-    printf("- segundo pipe me devuelve: [%d, %d]\n", childToParentPipe[0], childToParentPipe[1]);
+    showPipe(parentToChildPipe, "primer");
+    showPipe(childToParentPipe, "segundo");
     printf("\n");
 
     int forkResult = fork();
