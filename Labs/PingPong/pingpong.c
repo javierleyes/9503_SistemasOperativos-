@@ -46,15 +46,13 @@ int main(int argc, char *argv[])
     showPipe(childToParentPipe, quantityElements, "segundo");
     printf("\n");
 
-    int parentToChildPipeResult = pipe(parentToChildPipe);
-    if (parentToChildPipeResult < 0)
+    if (pipe(parentToChildPipe) < 0)
     {
         perror("Error en pipe parent to child");
         exit(-1);
     }
 
-    int childToParentPipeResult = pipe(childToParentPipe);
-    if (childToParentPipeResult < 0)
+    if (pipe(childToParentPipe) < 0)
     {
         perror("Error en pipe child to parent");
         exit(-1);
@@ -67,9 +65,11 @@ int main(int argc, char *argv[])
         exit(-1);
     }
     
-
     if (forkResult == 0)
     {
+        close(parentToChildPipe[1]);
+        close(childToParentPipe[0]);
+
         showFork(forkResult);
         showPid();
 
@@ -77,15 +77,17 @@ int main(int argc, char *argv[])
         read(parentToChildPipe[0], &receivedValueFromParent, sizeof(receivedValueFromParent));
         printf("  - recibo valor %d vía fd=%d\n", receivedValueFromParent, parentToChildPipe[0]);
 
-        close(parentToChildPipe[0]);
-
         printf("  - reenvío valor en fd=%d y termino\n\n", childToParentPipe[1]);
         write(childToParentPipe[1], &receivedValueFromParent, sizeof(receivedValueFromParent));
 
+        close(parentToChildPipe[0]);
         close(childToParentPipe[1]);
     }
     else
     {
+        close(parentToChildPipe[0]);
+        close(childToParentPipe[1]);
+
         showFork(forkResult);
         showPid();
 
@@ -95,14 +97,12 @@ int main(int argc, char *argv[])
         printf("  - envío valor %d a través de fd=%d\n\n", randomValueToSend, parentToChildPipe[1]);
         write(parentToChildPipe[1], &randomValueToSend, sizeof(randomValueToSend));
 
-        close(parentToChildPipe[1]);
-
         int receivedValueFromChild = 0;
         read(childToParentPipe[0], &receivedValueFromChild, sizeof(receivedValueFromChild));
         printf("Hola, de nuevo PID %d:\n", getpid());
         printf("  - recibí valor %d vía fd=%d\n", receivedValueFromChild, childToParentPipe[0]);
 
+        close(parentToChildPipe[1]);
         close(childToParentPipe[0]);
-
     }
 }
