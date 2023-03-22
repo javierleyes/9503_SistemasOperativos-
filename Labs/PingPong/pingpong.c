@@ -77,8 +77,12 @@ int main(int argc, char *argv[])
         read(parentToChildPipe[0], &receivedValueFromParent, sizeof(receivedValueFromParent));
         printf("  - recibo valor %d vía fd=%d\n", receivedValueFromParent, parentToChildPipe[0]);
 
+        close(parentToChildPipe[0]);
+
         printf("  - reenvío valor en fd=%d y termino\n\n", childToParentPipe[1]);
         write(childToParentPipe[1], &receivedValueFromParent, sizeof(receivedValueFromParent));
+
+        close(childToParentPipe[1]);
     }
     else
     {
@@ -91,16 +95,14 @@ int main(int argc, char *argv[])
         printf("  - envío valor %d a través de fd=%d\n\n", randomValueToSend, parentToChildPipe[1]);
         write(parentToChildPipe[1], &randomValueToSend, sizeof(randomValueToSend));
 
+        close(parentToChildPipe[1]);
+
         int receivedValueFromChild = 0;
         read(childToParentPipe[0], &receivedValueFromChild, sizeof(receivedValueFromChild));
         printf("Hola, de nuevo PID %d:\n", getpid());
-
         printf("  - recibí valor %d vía fd=%d\n", receivedValueFromChild, childToParentPipe[0]);
 
-    }
+        close(childToParentPipe[0]);
 
-    close(parentToChildPipe[0]);
-    close(parentToChildPipe[1]);
-    close(childToParentPipe[0]);
-    close(childToParentPipe[1]);
+    }
 }
