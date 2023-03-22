@@ -4,21 +4,11 @@
 #include <unistd.h>
 #include <time.h>
 
-void showPipe(int pipe[], int quantityElements, char numberPipe[])
-{
-    printf("  - %s pipe me devuelve: [", numberPipe);
+// ./test-fork  -c pingpong /home/javi/FISOP/9503_SistemasOperativos-/Labs/PingPong/
 
-    for (int i = 0; i < quantityElements; i++)
-    {
-        if ((i - (quantityElements - 1)) == 0)
-        {
-            printf("%d]\n", pipe[i]);
-        }
-        else
-        {
-            printf("%d, ", pipe[i]);
-        }
-    }
+void showPipe(int pipe[], char numberPipe[])
+{
+    printf("- %s pipe me devuelve: [%d, %d]\n", numberPipe, pipe[0], pipe[1]);
 }
 
 void showPid()
@@ -36,15 +26,8 @@ int main(int argc, char *argv[])
 {
     srand(time(0));
 
-    int parentToChildPipe[] = {3, 4};
-    int childToParentPipe[] = {6, 7};
-
-    printf("Hola, soy PID %d:\n", getpid());
-
-    int quantityElements = 2;
-    showPipe(parentToChildPipe, quantityElements, "primer");
-    showPipe(childToParentPipe, quantityElements, "segundo");
-    printf("\n");
+    int parentToChildPipe[2];
+    int childToParentPipe[2];
 
     if (pipe(parentToChildPipe) < 0)
     {
@@ -57,6 +40,11 @@ int main(int argc, char *argv[])
         perror("Error en pipe child to parent");
         exit(-1);
     }
+
+    printf("Hola, soy PID %d:\n", getpid());
+    printf("- primer pipe me devuelve: [%d, %d]\n", parentToChildPipe[0], parentToChildPipe[1]);
+    printf("- segundo pipe me devuelve: [%d, %d]\n", childToParentPipe[0], childToParentPipe[1]);
+    printf("\n");
 
     int forkResult = fork();
     if (forkResult == -1)
@@ -77,8 +65,8 @@ int main(int argc, char *argv[])
         read(parentToChildPipe[0], &receivedValueFromParent, sizeof(receivedValueFromParent));
         printf("  - recibo valor %d vía fd=%d\n", receivedValueFromParent, parentToChildPipe[0]);
 
-        printf("  - reenvío valor en fd=%d y termino\n\n", childToParentPipe[1]);
         write(childToParentPipe[1], &receivedValueFromParent, sizeof(receivedValueFromParent));
+        printf("  - reenvío valor en fd=%d y termino\n\n", childToParentPipe[1]);
 
         close(parentToChildPipe[0]);
         close(childToParentPipe[1]);
