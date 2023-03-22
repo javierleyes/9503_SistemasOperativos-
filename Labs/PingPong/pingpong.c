@@ -4,6 +4,7 @@
 #include <unistd.h>
 #include <time.h>
 
+// run test.
 // ./test-fork  -c pingpong /home/javi/FISOP/9503_SistemasOperativos-/Labs/PingPong/
 
 void showPipe(int pipe[], char numberPipe[])
@@ -11,7 +12,7 @@ void showPipe(int pipe[], char numberPipe[])
     printf("- %s pipe me devuelve: [%d, %d]\n", numberPipe, pipe[0], pipe[1]);
 }
 
-void showPid()
+void showPids()
 {
     printf("  - getpid me devuelve: %d\n", getpid());
     printf("  - getppid me devuelve: %d\n", getppid());
@@ -59,7 +60,7 @@ int main(int argc, char *argv[])
         close(childToParentPipe[0]);
 
         showFork(forkResult);
-        showPid();
+        showPids();
 
         int receivedValueFromParent = 0;
         read(parentToChildPipe[0], &receivedValueFromParent, sizeof(receivedValueFromParent));
@@ -77,7 +78,7 @@ int main(int argc, char *argv[])
         close(childToParentPipe[1]);
 
         showFork(forkResult);
-        showPid();
+        showPids();
 
         int randomValueToSend = rand();
         printf("  - random me devuelve: %d\n", randomValueToSend);
