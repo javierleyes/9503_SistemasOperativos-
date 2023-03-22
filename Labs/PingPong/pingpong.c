@@ -24,7 +24,7 @@ void showPipe(int pipe[], int quantityElements, char numberPipe[])
 void showPid()
 {
     printf("  - getpid me devuelve: %d\n", getpid());
-    printf("  - getppid me devuelve: %d\n", getpid());
+    printf("  - getppid me devuelve: %d\n", getppid());
 }
 
 void showFork(int forkResult)
@@ -36,34 +36,37 @@ int main(int argc, char *argv[])
 {
     srand(time(0));
 
-    int firstPipe[] = {3, 4};
-    int secondPipe[] = {6, 7};
+    int parentToChildPipe[] = {3, 4};
+    int childToParentPipe[] = {6, 7};
 
     printf("Hola, soy PID %d:\n", getpid());
 
     int quantityElements = 2;
-    showPipe(firstPipe, quantityElements, "primer");
-    showPipe(secondPipe, quantityElements, "segundo");
-
+    showPipe(parentToChildPipe, quantityElements, "primer");
+    showPipe(childToParentPipe, quantityElements, "segundo");
     printf("\n");
 
-    int parentToChildPipe[2];
-    int parentToChildResultPipe = pipe(parentToChildPipe);
-    if (parentToChildResultPipe < 0)
+    int parentToChildPipeResult = pipe(parentToChildPipe);
+    if (parentToChildPipeResult < 0)
     {
         perror("Error en pipe parent to child");
         exit(-1);
     }
 
-    int childToParentPipe[2];
-    int childToParentResultPipe = pipe(childToParentPipe);
-    if (childToParentResultPipe < 0)
+    int childToParentPipeResult = pipe(childToParentPipe);
+    if (childToParentPipeResult < 0)
     {
         perror("Error en pipe child to parent");
         exit(-1);
     }
 
     int forkResult = fork();
+    if (forkResult == -1)
+    {
+        perror("Fork error");
+        exit(-1);
+    }
+    
 
     if (forkResult == 0)
     {
@@ -82,11 +85,11 @@ int main(int argc, char *argv[])
         showFork(forkResult);
         showPid();
 
-        int randomValue = rand();
-        printf("  - random me devuelve: %d\n", randomValue);
+        int randomValueToSend = rand();
+        printf("  - random me devuelve: %d\n", randomValueToSend);
 
-        printf("  - envío valor %d a través de fd=%d\n\n", randomValue, parentToChildPipe[1]);
-        write(parentToChildPipe[1], &randomValue, sizeof(randomValue));
+        printf("  - envío valor %d a través de fd=%d\n\n", randomValueToSend, parentToChildPipe[1]);
+        write(parentToChildPipe[1], &randomValueToSend, sizeof(randomValueToSend));
 
         int receivedValueFromChild = 0;
         read(childToParentPipe[0], &receivedValueFromChild, sizeof(receivedValueFromChild));
