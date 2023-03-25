@@ -1,11 +1,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/types.h>
+#include <sys/wait.h>
 #include <unistd.h>
 #include <time.h>
 
 // run test.
-// ./test-fork  -c pingpong /home/javi/FISOP/9503_SistemasOperativos-/Labs/PingPong/
+// ./test-fork -c pingpong -v /home/javi/FISOP/9503_SistemasOperativos-/Labs/PingPong/
 
 void showPipe(int pipe[], char numberPipe[])
 {
@@ -71,6 +72,8 @@ int main(int argc, char *argv[])
 
         close(parentToChildPipe[0]);
         close(childToParentPipe[1]);
+
+        exit(0);
     }
     else
     {
@@ -93,5 +96,7 @@ int main(int argc, char *argv[])
 
         close(parentToChildPipe[1]);
         close(childToParentPipe[0]);
+
+        wait(NULL);
     }
 }
