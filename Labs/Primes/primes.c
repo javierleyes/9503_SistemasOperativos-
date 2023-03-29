@@ -65,8 +65,6 @@ int main(int argc, char *argv[])
             primesNumberCandidates[i] = firstPrimesNumber++;
         }
 
-        printf("\nIam the parent\n");
-
         write(parentToChildPipe[1], &primesNumberCandidates, sizeof(primesNumberCandidates));
 
         close(parentToChildPipe[1]);
@@ -80,13 +78,37 @@ int main(int argc, char *argv[])
         int primesNumber[numberCandidates];
         read(parentToChildPipe[0], &primesNumber, sizeof(primesNumber));
 
-        printf("\nIam the child\n");
-        printf("I received the numbers:\n");
-        for (int i = 0; i < numberCandidates; i++)
+        int primeNumber = primesNumber[0];
+
+        printf("Primo %d\n", primeNumber);
+        int* nextfilter = malloc(1 * sizeof(int));
+        int nextFilterIndex = 0;
+
+        for (int i = 1; i < numberCandidates; i++)
         {
-            printf("%d, ", primesNumber[i]);
+            int moduloDivision = primesNumber[i] % primeNumber;
+
+            if (moduloDivision != 0)
+            {
+                if (nextFilterIndex != 0)
+                {
+                    nextfilter = realloc(nextfilter, 1 * sizeof(int));
+                }
+
+                printf("Send %d\n", primesNumber[i]);
+                nextfilter[nextFilterIndex] = primesNumber[i];
+                nextFilterIndex++;
+            }
         }
 
+        // printf("Next filter:\n");
+        // for (int i = 0; i < nextFilterIndex; i++)
+        // {
+        //     printf("%d, \n", nextfilter[i]);
+        // }
+
+        free(nextfilter);
+        
         close(parentToChildPipe[0]);
 
         exit(0);
