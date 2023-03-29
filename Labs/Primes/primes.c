@@ -25,6 +25,12 @@ int getNumberToCalculatePrimes(char *number)
     return convertedNumber;
 }
 
+void showPrimeNumber(int primeNumbers[]) 
+{
+    int primeNumber = primeNumbers[0];
+    printf("Primo %d\n", primeNumber);
+}
+
 int main(int argc, char *argv[])
 {
     int receivedNumber = getNumberToCalculatePrimes(argv[1]);
@@ -78,9 +84,10 @@ int main(int argc, char *argv[])
         int primesNumber[numberCandidates];
         read(parentToChildPipe[0], &primesNumber, sizeof(primesNumber));
 
+        showPrimeNumber(primesNumber);
+
         int primeNumber = primesNumber[0];
 
-        printf("Primo %d\n", primeNumber);
         int* nextfilter = malloc(1 * sizeof(int));
         int nextFilterIndex = 0;
 
@@ -95,7 +102,7 @@ int main(int argc, char *argv[])
                     nextfilter = realloc(nextfilter, 1 * sizeof(int));
                 }
 
-                printf("Send %d\n", primesNumber[i]);
+                // printf("Send %d\n", primesNumber[i]);
                 nextfilter[nextFilterIndex] = primesNumber[i];
                 nextFilterIndex++;
             }
