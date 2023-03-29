@@ -63,9 +63,8 @@ int main(int argc, char *argv[])
     {
         close(parentToChildPipe[0]);
 
-        int primesNumberCandidates[numberCandidates];
-
         int firstPrimesNumber = 2;
+        int primesNumberCandidates[numberCandidates];
         for (int i = 0; i < numberCandidates; i++)
         {
             primesNumberCandidates[i] = firstPrimesNumber++;
