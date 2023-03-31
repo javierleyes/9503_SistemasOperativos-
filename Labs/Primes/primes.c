@@ -15,7 +15,6 @@ int getNumberToCalculatePrimes(char *number)
     errno = 0;
     long convertedNumber = strtol(number, &p, 10);
 
-    // Check for errors: e.g., the string does not represent an integer or the integer is larger than int
     if (errno != 0 || *p != '\0' || convertedNumber > INT_MAX || convertedNumber < INT_MIN)
     {
         printf("Error: Invalid number\n");
@@ -25,26 +24,60 @@ int getNumberToCalculatePrimes(char *number)
     return convertedNumber;
 }
 
-void showPrimeNumber(int primeNumbers[]) 
+void calculatePrimes(int parentToChildPipe)
 {
-    int primeNumber = primeNumbers[0];
-    printf("Primo %d\n", primeNumber);
+    int primeNumber = 0;
+	if (read(parentToChildPipe, &primeNumber, sizeof(int)) > 0) {
+		printf("primo %d\n", primeNumber);
+	} else {
+		return;
+	}
+
+    int childToChildPipe[2];
+    if (pipe(childToChildPipe) < 0)
+    {
+        perror("Pipe error");
+        exit(-1);
+    }
+
+    int forkResult = fork();
+    if (forkResult == -1)
+    {
+        perror("Fork error");
+        exit(-1);
+    }
+
+    if (forkResult != 0) 
+    {
+        close(childToChildPipe[0]);
+
+        int candidate = 0;
+        while (read(parentToChildPipe, &candidate, sizeof(int)) > 0)
+        {
+            if (candidate % primeNumber != 0) 
+            {
+				write(childToChildPipe[1], &candidate, sizeof(int));
+			}
+        }
+
+        close(parentToChildPipe);
+        close(childToChildPipe[1]);
+
+        wait(NULL);
+    }
+    else
+    {
+        close(parentToChildPipe);
+        close(childToChildPipe[1]);
+        calculatePrimes(childToChildPipe[0]);
+    }
 }
 
 int main(int argc, char *argv[])
 {
     int receivedNumber = getNumberToCalculatePrimes(argv[1]);
-    int numberCandidates = receivedNumber - 1;
 
-    printf("The received number is %d\n", receivedNumber);
-
-    printf("Generating an array with number to check...\n");
-   
-    printf("Done\n");
-
-    // Parent pipe.
     int parentToChildPipe[2];
-
     if (pipe(parentToChildPipe) < 0)
     {
         perror("Pipe error");
@@ -58,89 +91,26 @@ int main(int argc, char *argv[])
         exit(-1);
     }
 
-    // Parent.
     if (forkResult != 0) 
     {
         close(parentToChildPipe[0]);
 
-        int firstPrimesNumber = 2;
-        int primesNumberCandidates[numberCandidates];
-        for (int i = 0; i < numberCandidates; i++)
+        for (int candidate = 2; candidate < receivedNumber; candidate++)
         {
-            primesNumberCandidates[i] = firstPrimesNumber++;
+            write(parentToChildPipe[1], &candidate, sizeof(int));
         }
 
-        write(parentToChildPipe[1], &primesNumberCandidates, sizeof(primesNumberCandidates));
-
         close(parentToChildPipe[1]);
-
         wait(NULL);
     } 
     else 
     {
         close(parentToChildPipe[1]);
-
-        int primesNumber[numberCandidates];
-        read(parentToChildPipe[0], &primesNumber, sizeof(primesNumber));
-
-        showPrimeNumber(primesNumber);
-
-        int primeNumber = primesNumber[0];
-
-        int* nextfilter = malloc(1 * sizeof(int));
-        int nextFilterIndex = 0;
-
-        for (int i = 1; i < numberCandidates; i++)
-        {
-            int moduloDivision = primesNumber[i] % primeNumber;
-
-            if (moduloDivision != 0)
-            {
-                if (nextFilterIndex != 0)
-                {
-                    nextfilter = realloc(nextfilter, 1 * sizeof(int));
-                }
-
-                // printf("Send %d\n", primesNumber[i]);
-                nextfilter[nextFilterIndex] = primesNumber[i];
-                nextFilterIndex++;
-            }
-        }
-
-        // printf("Next filter:\n");
-        // for (int i = 0; i < nextFilterIndex; i++)
-        // {
-        //     printf("%d, \n", nextfilter[i]);
-        // }
-
-        free(nextfilter);
-        
+        calculatePrimes(parentToChildPipe[0]);
         close(parentToChildPipe[0]);
 
         exit(0);
     }
     
-    
-    printf("\nEnd\n");
-
-    //   int i = fork();
-
-    //   if (i == 0) {
-    //     printf("Soy el proceso hijo y mi pid es: %d\n", getpid());
-    //     sleep(2);
-    //     printf("Proceso hijo termina (%d)\n", getpid());
-    //     exit(17);
-    //   } else {
-    //     printf("Soy el proceso padre y mi pid es: %d\n", getpid());
-
-    //     int wstatus;
-    //     int ret = wait(&wstatus);
-    //     if (WIFEXITED(wstatus)) {
-    //       printf("PID %d terminócon %d\n", ret, WEXITSTATUS(wstatus));
-    //     } else if (WIFSIGNALED(wstatus)) {
-    //     	printf("PID %d fue terminado con %d\n", ret, WTERMSIG(wstatus));
-    //     }
-
-    //     printf("Proceso padre termina (%d)\n", getpid());
-    //   }
+    exit(0);
 }
